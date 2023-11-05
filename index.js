@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express')
 const app = express()
 const cors = require('cors');
@@ -20,42 +20,60 @@ const uri = "mongodb+srv://food-sharing-community:BiuFgq040jT9U6Q2@cluster0.ublb
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
 });
 
 async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    try {
+        // Connect the client to the server	(optional starting in v4.7)
+        await client.connect();
 
-    // Collection DB
-    const allFoodsCollection = client.db('foodSharingCoDB').collection('allFoods');
-
-
-    // GET ALL Foods
-    app.get('/api/v1/allFoods', async (req, res) => {
-        const cursor = allFoodsCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-      });
+        // Collection DB
+        const allFoodsCollection = client.db('foodSharingCoDB').collection('allFoods');
+        const foodRequestCollection = client.db('foodSharingCoDB').collection('foodRequests');
 
 
-
+        // GET ALL Foods
+        app.get('/api/v1/allFoods', async (req, res) => {
+            const cursor = allFoodsCollection.find();
+            const result = await cursor.toArray();
+            res.send(result);
+        });
 
 
 
+        // CREATE Food Request
+        app.post('/api/v1/user/foodRequests', async (req, res) => {
+            const request = req.body;
+            const result = await foodRequestCollection.insertOne(request);
+            res.send(result);
+        });
 
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
-  }
+        // DELETE BOOKING
+        app.delete('/api/v1/user/cancelRequest/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await foodRequestCollection.deleteOne(query);
+            res.send(result);
+        });
+
+
+
+
+
+
+
+        // Send a ping to confirm a successful connection
+        await client.db("admin").command({ ping: 1 });
+        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    } finally {
+        // Ensures that the client will close when you finish/error
+        // await client.close();
+    }
 }
 run().catch(console.dir);
 
