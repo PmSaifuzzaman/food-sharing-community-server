@@ -3,6 +3,8 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const cookieParser = require('cookie-parser');
 const port = process.env.PORT || 5000
 
 // middleware
@@ -11,6 +13,7 @@ app.use(cors({
     credentials: true,
 }))
 app.use(express.json())
+app.use(cookieParser());
 
 
 
@@ -38,6 +41,24 @@ async function run() {
         const foodRequestCollection = client.db('foodSharingCoDB').collection('foodRequests');
 
 
+        const verifyToken = (req, res, next) => {
+            const token = req?.cookies?.token;
+            console.log({ token });
+            if (!token) {
+              return res.status(401).send({ message: 'unauthorized access' });
+            }
+      
+            jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+              if (err) {
+                return res.status(401).send({ message: 'unauthorized access' });
+              }
+      
+              req.user = decoded;
+              next();
+            });
+          };
+
+
         // GET ALL Foods
         app.get('/api/v1/allFoods', async (req, res) => {
             const cursor = allFoodsCollection.find();
@@ -54,6 +75,25 @@ async function run() {
             res.send(result);
         });
 
+        // GET SINGLE USER SPECIFIQ REQUEST
+        app.get('/api/v1/requests', verifyToken, async (req, res) => {
+            const userEmail = req.query.email;
+
+            if (userEmail !== req.user.email) {
+                return res
+                    .status(403)
+                    .send({ message: 'You are not allowed to access !' });
+            }
+            let query = {}; //get all requests
+            if (req.query?.email) {
+                query.email = userEmail;
+            }
+
+            const result = await foodRequestCollection.find(query).toArray();
+            res.send(result);
+        });
+
+
         // DELETE food Request
         app.delete('/api/v1/user/cancelRequest/:id', async (req, res) => {
             const id = req.params.id;
@@ -64,7 +104,19 @@ async function run() {
 
 
 
-
+        // JWT Auth Related api
+        app.post('/api/v1/auth/access-token', verifyToken, async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '1h' });
+            console.log(token);
+            res
+                .cookie('token', token, {
+                    httpOnly: false,
+                    secure: true,
+                    sameSite: 'none',
+                })
+                .send({ success: true });
+        });
 
 
 
