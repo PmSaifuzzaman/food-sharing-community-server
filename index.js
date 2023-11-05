@@ -1,4 +1,5 @@
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors');
@@ -11,12 +12,12 @@ app.use(cors({
 }))
 app.use(express.json())
 
-//   food-sharing-community
-// BiuFgq040jT9U6Q2
 
 
+// console.log("password:", process.env.DB_PASS)
 
-const uri = "mongodb+srv://food-sharing-community:BiuFgq040jT9U6Q2@cluster0.ublbqgg.mongodb.net/?retryWrites=true&w=majority";
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.ublbqgg.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -53,7 +54,7 @@ async function run() {
             res.send(result);
         });
 
-        // DELETE BOOKING
+        // DELETE food Request
         app.delete('/api/v1/user/cancelRequest/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
