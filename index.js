@@ -45,26 +45,39 @@ async function run() {
             const token = req?.cookies?.token;
             console.log({ token });
             if (!token) {
-              return res.status(401).send({ message: 'unauthorized access' });
-            }
-      
-            jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-              if (err) {
                 return res.status(401).send({ message: 'unauthorized access' });
-              }
-      
-              req.user = decoded;
-              next();
+            }
+
+            jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: 'unauthorized access' });
+                }
+
+                req.user = decoded;
+                next();
             });
-          };
+        };
 
 
         // GET ALL Foods
-        app.get('/api/v1/allFoods', async (req, res) => {
+        app.get('/api/v1/availableAllfoods', async (req, res) => {
             const cursor = allFoodsCollection.find();
             const result = await cursor.toArray();
             res.send(result);
         });
+        // GET one Food
+        app.get('/api/v1/availableFoods/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await allFoodsCollection.find({ _id: new ObjectId(id) }).toArray();
+            res.send(result);
+        });
+
+        // post api for Add food
+        app.post('/api/v1/addFood', async (req, res) => {
+            const food = req.body;
+            const result = await allFoodsCollection.insertOne(food);
+            res.send(result);
+        })
 
 
 
