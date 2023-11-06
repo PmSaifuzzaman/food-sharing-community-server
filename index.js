@@ -65,6 +65,15 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         });
+        // GET sorted Featured Foods for homepage
+        app.get('/api/v1/AllFeaturedFoods', async (req, res) => {
+            const cursor = allFoodsCollection.find().sort({ foodQuantity: -1 }).limit(6);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
+
+
         // GET one Food
         app.get('/api/v1/availableFoods/:id', async (req, res) => {
             const id = req.params.id;
