@@ -61,10 +61,18 @@ async function run() {
 
         // GET ALL Foods
         app.get('/api/v1/availableAllfoods', async (req, res) => {
-            const cursor = allFoodsCollection.find();
+            // Load specifiq User data
+            console.log(req.query.donatorEmail)
+            let query = {}
+            if (req.query?.donatorEmail) {
+                query = { donatorEmail: req.query.donatorEmail }
+            }
+
+            const cursor = allFoodsCollection.find(query);
             const result = await cursor.toArray();
             res.send(result);
         });
+
         // GET sorted Featured Foods for homepage
         app.get('/api/v1/AllFeaturedFoods', async (req, res) => {
             const cursor = allFoodsCollection.find().sort({ foodQuantity: -1 }).limit(6);
@@ -72,14 +80,19 @@ async function run() {
             res.send(result);
         });
 
-
-
         // GET one Food
         app.get('/api/v1/availableFoods/:id', async (req, res) => {
             const id = req.params.id;
             const result = await allFoodsCollection.find({ _id: new ObjectId(id) }).toArray();
             res.send(result);
         });
+        // Delete one Food
+        app.delete('/api/v1/availableAllfoods/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await allFoodsCollection.deleteOne(query);
+            res.send(result);
+        })
 
         // post api for Add food
         app.post('/api/v1/addFood', async (req, res) => {
@@ -123,6 +136,28 @@ async function run() {
             const result = await foodRequestCollection.deleteOne(query);
             res.send(result);
         });
+
+
+        // Update food 
+        app.put('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatedProduct = req.body;
+            const newUpdatedProduct = {
+                $set: {
+                    name: updatedProduct.name,
+                    brand: updatedProduct.brand,
+                    type: updatedProduct.type,
+                    price: updatedProduct.price,
+                    ratings: updatedProduct.ratings,
+                    details: updatedProduct.details,
+                    photo: updatedProduct.photo
+                }
+            }
+            const result = await productCollection.updateOne(filter, newUpdatedProduct, options)
+            res.send(result)
+        })
 
 
 
