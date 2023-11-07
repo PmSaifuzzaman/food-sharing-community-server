@@ -110,23 +110,37 @@ async function run() {
             res.send(result);
         });
 
-        // GET SINGLE USER SPECIFIQ REQUEST
-        app.get('/api/v1/requests', async (req, res) => {
-            const userEmail = req.query.email;
-
-            if (userEmail !== req.user.email) {
-                return res
-                    .status(403)
-                    .send({ message: 'You are not allowed to access !' });
-            }
-            let query = {}; //get all requests
-            if (req.query?.email) {
-                query.email = userEmail;
+        // GET ALL Foods requests
+        app.get('/api/v1/user/foodRequests', async (req, res) => {
+            // Load specifiq User data
+            console.log(req.query.requesterEmail)
+            let query = {}
+            if (req.query?.requesterEmail) {
+                query = { requesterEmail: req.query.requesterEmail }
             }
 
-            const result = await foodRequestCollection.find(query).toArray();
+            const cursor = foodRequestCollection.find(query);
+            const result = await cursor.toArray();
             res.send(result);
         });
+
+        // // GET SINGLE USER SPECIFIQ REQUEST
+        // app.get('/api/v1/user/foodRequests', async (req, res) => {
+        //     const userEmail = req.query.requesterEmail;
+
+        //     if (userEmail !== req.user.email) {
+        //         return res
+        //             .status(403)
+        //             .send({ message: 'You are not allowed to access !' });
+        //     }
+        //     let query = {}; //get all requests
+        //     if (req.query?.email) {
+        //         query.email = userEmail;
+        //     }
+
+        //     const result = await foodRequestCollection.find(query).toArray();
+        //     res.send(result);
+        // });
 
 
         // DELETE food Request
