@@ -41,6 +41,12 @@ async function run() {
         const foodRequestCollection = client.db('foodSharingCoDB').collection('foodRequests');
 
 
+
+        // middleware For verify token
+        const logger = (req, res, next) => {
+            console.log('log: info', req.method, req.url);
+            next()
+        }
         const verifyToken = (req, res, next) => {
             const token = req?.cookies?.token;
             console.log({ token });
@@ -111,9 +117,13 @@ async function run() {
         });
 
         // GET ALL Foods requests
-        app.get('/api/v1/user/foodRequests', async (req, res) => {
+        app.get('/api/v1/user/foodRequests', logger, verifyToken, async (req, res) => {
             // Load specifiq User data
             console.log(req.query.requesterEmail)
+            console.log('Token owner info', req.user)
+            if(req.user.email != req.query.requesterEmail){
+                return res.status(403).send({message: 'Forbidden access'})
+            }
             let query = {}
             if (req.query?.requesterEmail) {
                 query = { requesterEmail: req.query.requesterEmail }
@@ -124,27 +134,16 @@ async function run() {
             res.send(result);
         });
 
-        // // GET SINGLE USER SPECIFIQ REQUEST
-        // app.get('/api/v1/user/foodRequests', async (req, res) => {
-        //     const userEmail = req.query.requesterEmail;
 
-        //     if (userEmail !== req.user.email) {
-        //         return res
-        //             .status(403)
-        //             .send({ message: 'You are not allowed to access !' });
-        //     }
-        //     let query = {}; //get all requests
-        //     if (req.query?.email) {
-        //         query.email = userEmail;
-        //     }
-
-        //     const result = await foodRequestCollection.find(query).toArray();
-        //     res.send(result);
-        // });
-
+        // get one food from all requests
+        app.get('/api/v1/user/foodRequests/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await foodRequestCollection.findOne({ _id: new ObjectId(id) });
+            res.send(result);
+        });
 
         // DELETE food Request
-        app.delete('/api/v1/user/cancelRequest/:id', async (req, res) => {
+        app.delete('/api/v1/user/foodRequests/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await foodRequestCollection.deleteOne(query);
@@ -180,7 +179,7 @@ async function run() {
 
 
         // JWT Auth Related api
-        app.post('/api/v1/auth/access-token', verifyToken, async (req, res) => {
+        app.post('/api/v1/auth/access-token', async (req, res) => {
             const user = req.body;
             const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn: '1h' });
             console.log(token);
@@ -192,6 +191,12 @@ async function run() {
                 })
                 .send({ success: true });
         });
+
+        app.post('/api/v1/auth/logout', async (req, res) => {
+            const user = req.body;
+            console.log('log out the user', user);
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+        })
 
 
 
