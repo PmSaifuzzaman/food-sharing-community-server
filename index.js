@@ -83,7 +83,7 @@ async function run() {
         // GET one Food
         app.get('/api/v1/availableFoods/:id', async (req, res) => {
             const id = req.params.id;
-            const result = await allFoodsCollection.find({ _id: new ObjectId(id) }).toArray();
+            const result = await allFoodsCollection.findOne({ _id: new ObjectId(id) });
             res.send(result);
         });
         // Delete one Food
@@ -138,26 +138,30 @@ async function run() {
         });
 
 
+
         // Update food 
-        app.put('/product/:id', async (req, res) => {
+        app.put('/api/v1/availableFoods/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const options = { upsert: true };
-            const updatedProduct = req.body;
-            const newUpdatedProduct = {
+            const updatedFood = req.body;
+            const newUpdatedFood = {
                 $set: {
-                    name: updatedProduct.name,
-                    brand: updatedProduct.brand,
-                    type: updatedProduct.type,
-                    price: updatedProduct.price,
-                    ratings: updatedProduct.ratings,
-                    details: updatedProduct.details,
-                    photo: updatedProduct.photo
+                    foodName: updatedFood.foodName,
+                    foodImage: updatedFood.foodImage,
+                    donatorImage: updatedFood.donatorImage,
+                    donatorName: updatedFood.donatorName,
+                    foodQuantity: updatedFood.foodQuantity,
+                    pickupLocation: updatedFood.pickupLocation,
+                    expireDate: updatedFood.expireDate,
+                    foodStatus: updatedFood.foodStatus,
+                    donatorEmail: updatedFood.donatorEmail
                 }
             }
-            const result = await productCollection.updateOne(filter, newUpdatedProduct, options)
+            const result = await allFoodsCollection.updateOne(filter, newUpdatedFood, options)
             res.send(result)
         })
+
 
 
 
