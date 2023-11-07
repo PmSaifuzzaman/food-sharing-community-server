@@ -111,7 +111,7 @@ async function run() {
         });
 
         // GET SINGLE USER SPECIFIQ REQUEST
-        app.get('/api/v1/requests', verifyToken, async (req, res) => {
+        app.get('/api/v1/requests', async (req, res) => {
             const userEmail = req.query.email;
 
             if (userEmail !== req.user.email) {
