@@ -120,7 +120,7 @@ async function run() {
         app.get('/api/v1/user/foodRequests', logger, verifyToken, async (req, res) => {
             // Load specifiq User data
             console.log(req.query.requesterEmail)
-            console.log('Token owner info', req.user)
+            console.log('Token owner information', req.user)
             if(req.user.email != req.query.requesterEmail){
                 return res.status(403).send({message: 'Forbidden access'})
             }
