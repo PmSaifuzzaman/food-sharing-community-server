@@ -66,9 +66,14 @@ async function run() {
 
 
         // GET ALL Foods
-        app.get('/api/v1/availableAllfoods', async (req, res) => {
+        app.get('/api/v1/availableAllfoods',  async (req, res) => {
             // Load specifiq User data
             console.log(req.query.donatorEmail)
+            // console.log('Token owner information', req.user)
+            // if(req.user.email != req.query.donatorEmail){
+            //     return res.status(403).send({message: 'Forbidden access'})
+            // }
+
             let query = {}
             if (req.query?.donatorEmail) {
                 query = { donatorEmail: req.query.donatorEmail }
